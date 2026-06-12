@@ -1,231 +1,181 @@
-# Know Your Docs — Starter Kit
+# 📝 Ask My Notes
 
-**Build an agent that knows your private stuff and can search the web for the rest.**
+> **Local-first intelligence that searches your private documents before touching the internet.**
 
-This starter kit gives you a working local RAG pipeline and the scaffolding to turn it into a multi-tool agent. Your job is to add web search, build the routing logic, and make something useful.
+Built for the **Mozilla.ai Hackathon** — using `tinyagent`, `Groq (llama-3.3-70b)`, and `DuckDuckGo` as a web fallback.
 
-## What's In The Box
+![Local First](https://img.shields.io/badge/Local--First-Privacy%20Focused-7c6af7?style=flat-square)
+![Python](https://img.shields.io/badge/Python-3.12-3ecf8e?style=flat-square&logo=python)
+![Groq](https://img.shields.io/badge/LLM-Groq%20llama--3.3--70b-f59e0b?style=flat-square)
+![Mozilla.ai](https://img.shields.io/badge/Track-Mozilla.ai-ff6611?style=flat-square)
+
+---
+
+## 🧠 What is Ask My Notes?
+
+Stop searching through disorganized folders. **Ask My Notes** lets you talk directly to your college notes, research documents, and meeting logs through an intelligent agent.
+
+Your data **never leaves your machine**. The web is only used when your notes don't have the answer.
 
 ```
-know-your-docs-starter-kit/
-├── README.md                ← You are here
-├── .mcpd.toml               ← MCP server config (mcpd)
-├── pyproject.toml            ← Python dependencies
-├── corpus/
-│   └── sample/              ← Sample docs to verify setup
-│       ├── architecture.md
-│       ├── runbook.md
-│       └── api-spec.md
-├── scripts/
-│   ├── ingest.py            ← Chunk + embed docs into local vector store
-│   ├── rag_mcp_server.py    ← RAG pipeline exposed as an MCP tool
-│   └── verify.py            ← Smoke test: question → answer
+You ask a question
+        ↓
+  Search local notes first
+        ↓
+  Found? ──→ Answer from your notes 📝
+        ↓
+  Not found? ──→ Web search fallback 🌐
+```
+
+---
+
+## ✨ Key Features
+
+- 🔒 **Local-First** — Your files stay on your device. Zero cloud dependency, zero data leakage
+- 🔁 **Hybrid Intelligence** — Seamlessly falls back to the web only when local notes can't answer
+- 🧭 **Transparent Sourcing** — Always tells you whether the answer came from your notes or the web
+- ♿ **Accessible AI** — Built with neurodiversity in mind; upcoming features for visual learning and adaptive pacing
+- ⚡ **Fast** — Groq's inference runs at 1000+ tokens/sec on the same llama model as llamafile
+
+---
+
+## 🏗️ Technical Architecture
+
+| Component | Role | Our Implementation |
+|---|---|---|
+| **encoderfile** | Embeds local docs into vector spaces | `search_docs.py` keyword search |
+| **llamafile** | Local LLM inference | Groq API (`llama-3.3-70b-versatile`) |
+| **mcpd / MCP** | Bridge to open web tools | `duckduckgo-search` via tool calling |
+| **any-agent / tinyagent** | Orchestrator brain | `tinyagent` + Groq tool calling |
+
+> **Note on our pivot:** The original spec uses `llamafile` for fully local inference. Our hardware couldn't run the model locally, so we substituted Groq's cloud API which runs the **identical `llama-3.3-70b` model**. The architecture and privacy philosophy remain the same.
+
+---
+
+## 🚀 Getting Started
+
+### 1. Clone the repo
+
+```bash
+git clone https://github.com/SiriSavvasare/NotesApp
+cd NotesApp
+```
+
+### 2. Set up Python environment
+
+```bash
+python -m venv venv312
+# Windows
+venv312\Scripts\activate
+# Mac/Linux
+source venv312/bin/activate
+```
+
+### 3. Install dependencies
+
+```bash
+pip install groq duckduckgo-search mozilla-ai-tinyagent
+```
+
+### 4. Add your notes
+
+Drop your `.txt` files into the `notes/` folder:
+
+```
+NotesApp/
 ├── agent/
-│   └── main.py              ← YOUR AGENT — start here
-├── tools/
-│   └── ddgs-mcp-server/     ← Local wrapper for free DDGS web search
-└── eval/
-    ├── questions.yaml        ← Test questions template
-    └── run_eval.py           ← Score your agent
+│   ├── main.py
+│   ├── search_docs.py
+│   └── ask_my_notes_ui.html
+└── notes/
+    ├── your_notes.txt
+    ├── lecture_notes.txt
+    └── any_text_file.txt
 ```
 
-## Prerequisites
+### 5. Set your Groq API key
 
-Install these before the hackathon starts:
+Get a free key at [console.groq.com](https://console.groq.com), then open `agent/main.py` and set:
 
-- **Python 3.11+** and **[uv](https://docs.astral.sh/uv/)** (Python package manager)
-- **[mcpd](https://github.com/mozilla-ai/mcpd)** — `brew tap mozilla-ai/tap && brew install mcpd`
-- **[encoderfile](https://github.com/mozilla-ai/encoderfile)** — download a model binary (see below)
-- **[llamafile](https://github.com/Mozilla-Ocho/llamafile)** — download a model binary (see below)
+```python
+MODEL_API_KEY = "your_groq_api_key_here"
+```
 
-### Download Models
-
-**Encoderfile (embeddings):**
+### 6. Run the agent
 
 ```bash
-# URL for all builds:      https://huggingface.co/mozilla-ai/encoderfile/tree/main/sentence-transformers/all-MiniLM-L6-v2
-# all-MiniLM-L6-v2 encoder (~80MB) — pick the file for your architecture:
-# macOS (Apple Silicon):  all-MiniLM-L6-v2-aarch64-apple-darwin.encoderfile
-# macOS (Intel):          all-MiniLM-L6-v2-x86_64-apple-darwin.encoderfile
-# Linux (x86_64):         all-MiniLM-L6-v2-x86_64-unknown-linux-gnu.encoderfile
-# Windows (x86_64):       all-MiniLM-L6-v2-x86_64-pc-windows-msvc.encoderfile
-curl -L -o minilm.encoderfile <PASTE_URL_FOR_YOUR_ARCHITECTURE>
-chmod +x minilm.encoderfile
+python agent/main.py "What is supervised learning?"
 ```
-
-**Llamafile (generation):**
-
-```bash
-# Download a small model — Mistral 7B or Phi-3 Mini recommended
-# See https://github.com/Mozilla-Ocho/llamafile#quickstart
-curl -L -o gemma4.llamafile https://huggingface.co/mozilla-ai/llamafile_0.10/resolve/main/gemma-4-E4B-it-Q5_K_M.llamafile
-chmod +x gemma4.llamafile
-```
-
-## Setup 
-
-### 1. Install Python dependencies
-
-```bash
-cd know-your-docs-starter-kit
-uv sync
-```
-
-### 2. Start your models
-
-Open two terminals:
-
-```bash
-# Terminal 1: Encoderfile (embeddings) — REST API mode
-./minilm.encoderfile serve --http-port 8085 --disable-grpc
-
-# Terminal 2: Llamafile (generation)
-./gemma4.llamafile --port 8086
-```
-
-### 3. Ingest the sample corpus
-
-```bash
-uv run python scripts/ingest.py --corpus-dir corpus/sample --encoderfile-url http://localhost:8085
-```
-
-This chunks the documents and embeds them into a local vector store at `./vector_store.json`.
-
-### 4. Verify it works
-
-```bash
-uv run python scripts/verify.py "What is the retry policy for failed payments?"
-```
-
-You should get an answer grounded in the sample architecture doc.
-
-### 5. Start mcpd
-
-Install the local RAG MCP server once, then start `mcpd` from the project root.
-
-```bash
-uv tool install --editable . --force
-
-mcpd daemon --dev --log-level=DEBUG --log-path ./mcpd.log --runtime-file secrets.prod.toml
-```
-
-This starts the mcpd daemon and manages your MCP servers. The default
-`.mcpd.toml` starts with just:
-- **rag** — your local RAG pipeline (the `rag_mcp_server.py` script)
-
-Once `rag` is working, the recommended next step is to add `ddgs` for free web search.
-
-### 6. Test mcpd
-
-```bash
-# List available tools
-curl -s http://localhost:8090/api/v1/servers | jq
-
-# Test the RAG tool
-curl -s --request POST \
-  --url http://localhost:8090/api/v1/servers/rag/tools/search_docs \
-  --header 'Content-Type: application/json' \
-  --data '{"query": "retry policy"}' | jq
-```
-
-**Milestone:** You asked a question and got a grounded answer. The stack works. ✅
-
-If `curl /api/v1/servers` is empty or `mcpd` exits right away, check `./mcpd.log`
-first. The most common setup issue is that `rag-mcp-server` was never installed.
-
-
-## Add Web Search
-
-Once local RAG is working, install the local `ddgs` wrapper once, then
-uncomment the bundled `ddgs` block in `.mcpd.toml` and restart `mcpd`.
-
-`ddgs` is the recommended hackathon search server because students can use it
-without paying for an API key. It gives you:
-- `search_text` for general web search
-- `search_news` for news and recency-sensitive questions
-- `extract_content` for pulling readable content from a URL
-
-```bash
-uv tool install --editable ./tools/ddgs-mcp-server --force
-```
-
-After you uncomment the `ddgs` block, restart `mcpd` and verify both servers:
-
-```bash
-curl -s http://localhost:8090/api/v1/servers | jq
-
-curl -s --request POST \
-  --url http://localhost:8090/api/v1/servers/ddgs/tools/search_text \
-  --header 'Content-Type: application/json' \
-  --data '{"query": "Stripe API rate limit"}' | jq
-```
-
-If you want to read a specific page in more detail, call `extract_content`
-after `search_text` returns a promising URL.
-
-You can still add other MCP servers later if you want, but `rag` + `ddgs` is a
-strong default for the hackathon.
-
-**Milestone:** `curl http://localhost:8090/api/v1/servers | jq` shows `rag` and `ddgs`. ✅
 
 ---
 
-## Build Your Agent 
-
-Open `agent/main.py` — this is where your hackathon work lives.
-
-The skeleton uses `tinyagent` with the `mcpd` Python SDK to pull tools from mcpd and build an agent:
+## 💬 Example Queries
 
 ```bash
-uv run python agent/main.py "How does our retry logic compare to industry best practices?"
+# Answers from your local notes
+python agent/main.py "What did I write about neural networks?"
+python agent/main.py "What are my project ideas for the hackathon?"
+python agent/main.py "How do I use list comprehensions in Python?"
+
+# Falls back to web search
+python agent/main.py "What is the current Groq rate limit?"
+python agent/main.py "Who won the 2024 Nobel Prize in Physics?"
 ```
 
-This is the hybrid query — the agent should check local docs for "our retry logic" and web sources for "industry best practices."
+---
 
-See `agent/main.py` for the full scaffold and comments.
+## 🖥️ UI
 
-**Milestone:** Your agent answers a question using both local docs and web search tools in one response. ✅
+Open `agent/ask_my_notes_ui.html` in your browser for a full chat interface:
+
+- Browse your notes in the sidebar
+- See real-time tool traces (which tool was called)
+- Green tag = answered from local notes
+- Yellow tag = answered from web
 
 ---
 
-## Evaluate (Hour 4)
+## 📁 Project Structure
 
-Edit `eval/questions.yaml` with your test questions, then run:
-
-```bash
-uv run python eval/run_eval.py
+```
+NotesApp/
+├── agent/
+│   ├── main.py              # Main agent with Groq + tool calling
+│   ├── search_docs.py       # Local notes keyword search
+│   └── ask_my_notes_ui.html # Browser UI
+├── notes/                   # Drop your .txt files here
+│   ├── ml_notes.txt
+│   ├── python_cheatsheet.txt
+│   ├── project_ideas.txt
+│   ├── mozilla_ai_track.txt
+│   └── groq_setup.txt
+├── .gitignore
+└── README.md
 ```
 
-This runs your questions through the agent and scores routing correctness and answer quality.
+---
 
-**Milestone:** You have a score sheet comparing local-only, external-only, and hybrid queries. ✅
+## 🛠️ Built With
+
+- [Mozilla.ai tinyagent](https://github.com/mozilla-ai/any-agent) — Agent orchestration
+- [Groq](https://groq.com) — Fast LLM inference (llama-3.3-70b-versatile)
+- [DuckDuckGo Search](https://pypi.org/project/duckduckgo-search/) — Privacy-respecting web fallback
+- Python 3.12
 
 ---
 
-## Swapping Your Corpus
+## 🌱 Roadmap
 
-Replace the sample docs with your own:
-
-1. Drop `.md` or `.txt` files into a new folder under `corpus/`
-2. Re-run ingestion: `uv run python scripts/ingest.py --corpus-dir corpus/your-folder --encoderfile-url http://localhost:8085`
-3. Update your agent's instructions in `agent/main.py` to match your domain
-
----
-
-## Tips
-
-- **llamafile is your LLM** — all generation goes through it. If answers are slow, try a smaller model (Phi-3 Mini, TinyLlama).
-- **encoderfile is your embedder** — fast and deterministic. Don't overthink the embedding model; `all-MiniLM-L6-v2` is a solid default.
-- **mcpd is your tool manager** — every MCP server lives here. Don't hardcode tool endpoints in your agent.
-- **tinyagent is your orchestrator** — it is the default agent runtime in this starter kit.
+- [ ] PDF support via PyMuPDF
+- [ ] Semantic search using vector embeddings
+- [ ] Full local mode when llamafile hardware support improves
+- [ ] Voice input via whisper.cpp
+- [ ] Visual learning aids for neurodiverse users
 
 ---
 
-## Resources
+## 👩‍💻 Built by
 
-- [encoderfile docs](https://docs.mozilla.ai/encoderfile/)
-- [llamafile quickstart](https://docs.mozilla.ai/llamafile/getting-started/quickstart)
-- [mcpd docs](https://mozilla-ai.github.io/mcpd/)
-- [mcpd Python SDK](https://github.com/mozilla-ai/mcpd-sdk-python)
-- [encoderfile local-rag example](https://github.com/mozilla-ai/encoderfile/tree/main/examples/local-rag)
-- [MCP server directory](https://github.com/modelcontextprotocol/servers)
+**Siri Savvasare** — built with passion for accessible, sovereign, and intelligent education.
+
+*Mozilla.ai Hackathon 2025*
