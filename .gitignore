@@ -1,6 +1,9 @@
 # Models (too large for git)
 *.llamafile
 *.encoderfile
+diffusionfile-*.exe
+llamafile-*.exe
+llamafile-*.zip
 build/
 sentence-model/
 
