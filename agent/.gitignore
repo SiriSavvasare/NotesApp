@@ -1,0 +1,11 @@
+# Ignore large files
+*.exe
+*.zip
+
+# Ignore virtual environment
+venv312/
+venv/
+
+# Ignore other clutter
+__pycache__/
+.env
