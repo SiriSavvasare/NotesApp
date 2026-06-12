@@ -1,0 +1,26 @@
+Problem Statement:
+The worst thing that can happen in a medical emergency is not just the symptom; it's panic. Most health apps are "static forms" that feel cold and clinical, making it hard for stressed users to find their way through complicated menus when they are least able to do so. In a city as crowded as Bengaluru, this friction causes "decision paralysis," which means that people either go to the ER too soon or wait too long for a serious problem. We are bridging the gap between human fear and medical data.
+
+Proposed Solution: Triage GPT (The Interface That Puts Empathy First)
+Triage GPT is a "living" medical companion that changes how it looks and acts based on how the user feels and how they are doing physically.
+
+Main Features:
+
+1.Voice-Activated Triage (The Calling Agent): This is a hands-free, voice-first interaction layer for people who are too hurt or upset to type. The AI agent stays calm and professional while gathering important information and giving first aid advice right away.
+
+2.Stress-Adaptive UI: This design is based on Flutter and uses "Visual Triage" to change the color scheme and layout of the interface from calm blues (routine) to high-alert ambers and reds (emergency) to quickly direct the user's attention.Includes WCAG-compliant high-contrast modes to ensure the interface remains usable for people with visual impairments or in low-light emergency conditions
+
+3.Seamless Information Handoff: A "Medical Brief" feature that lets doctors quickly read a complicated AI conversation in a clean, scannable PDF. This takes the stress out of having to explain symptoms twice.
+
+4.Human-Centric Safety Rails: Beyond just "code," we’ve designed a tiered response system that automatically prioritizes emergency contact dialing if the AI detects life-threatening vocal cues or keywords.
+
+Tech Stack
+Interface:
+Flutter & Figma (Dev Mode) for pixel-perfect, responsive component architecture.
+Figma Variables & Tokens: For instant theme-switching between calm and emergency modes, ensuring a consistent design system across Mobile and Web.
+
+Voice Interaction: Gemini Live & WebRTC to ensure zero-latency, natural human-to-AI conversation.
+
+Infrastructure: Firebase for instant synchronization between the mobile app and the emergency dashboard.
+
+Navigation: Google Maps API styled with custom medical-overlay layers for high-speed facility discovery.
